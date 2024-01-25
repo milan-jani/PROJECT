@@ -1,0 +1,114 @@
+// Blynk Settings
+#define BLYNK_TEMPLATE_ID "TMPL3lRpBP0s2"
+#define BLYNK_TEMPLATE_NAME "lpg"
+#define BLYNK_AUTH_TOKEN "E3I6S3gMXgY65FzkpDUEV-IDsixiJe2I"
+
+#define BUZZER_PIN 8
+#define MQ6_PIN A0
+
+const float THRESHOLD = 20.0; // threshold value in kg
+
+
+#include <HX711.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <BlynkSimpleEsp8266.h>
+#include <MQUnifiedsensor.h>
+
+
+
+
+// NodeMCU Pins
+const int DOUT_pin = D7;
+const int CLK_pin = D6;
+
+// LCD Pins
+const int LCD_SDA_pin = D2;
+const int LCD_SCL_pin = D1;
+
+HX711 scale;
+// Blynk Auth Token
+char auth[] = "E3I6S3gMXgY65FzkpDUEV-IDsixiJe2I";
+char ssid[] = "Oneplus";
+char pass[] = "12123444";
+
+// Calibration Factor
+const float calibration_factor = -20000;
+
+// LCD Settings
+/*const int LCD_ADDRESS = 0x27;
+const int LCD_COLS = 16;
+const int LCD_ROWS = 2;
+
+LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLS, LCD_ROWS);
+*/
+// LCD Object
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+BlynkTimer timer;
+
+void setup() {
+
+ //Serial.begin(9600);
+ Blynk.begin(auth, ssid, pass);
+ // Connect to LCD
+  lcd.init();                       // Initialize the LCD
+  lcd.backlight();                  // Turn on the backlight
+  lcd.clear();                      // Clear the LCD screen
+  lcd.print("Connected to Nod MCU");
+  delay(2000);
+  lcd.clear(); 
+    lcd.print("MAD");
+  delay(2000);
+   lcd.clear(); 
+ scale.begin(DOUT_pin, CLK_pin);
+ scale.tare();
+
+ //  pinMode(BUZZER_PIN, OUTPUT);
+}
+
+void loop() {
+ Blynk.run();
+ timer.run();
+ lcd.clear(); 
+ 
+ scale.set_scale(calibration_factor);
+
+ static float weight = 0;
+ weight = -1*(scale.get_units(3));
+
+ lcd.setCursor(0, 0);
+ lcd.print("Weight: ");
+   lcd.setCursor(8, 0);
+ lcd.print(weight, 3);
+ lcd.print(" kg");
+
+ Blynk.virtualWrite(V0, weight);
+
+  if (weight < THRESHOLD) {
+  
+    
+Blynk.logEvent("Cylinder is about to over");
+delay(1000);
+ }
+
+
+  // Read the value from the MQ6 sensor
+  int gasValue = analogRead(MQ6_PIN);
+
+  // Print the gas value to the serial monitor
+  Serial.print("Gas value: ");
+  Serial.println(gasValue);
+
+
+
+   // Check if the gas value is above a certain threshold
+  if (gasValue > 100) {
+    // Turn on the buzzer
+    digitalWrite(BUZZER_PIN, HIGH);
+  } else {
+    // Turn off the buzzer
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+
+}
