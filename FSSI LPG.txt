@@ -88,7 +88,7 @@ void loop() {
   if (weight < THRESHOLD) {
   
     
-Blynk.logEvent("Cylinder is about to over");
+Blynk.logEvent("over");
 delay(1000);
  }
 
