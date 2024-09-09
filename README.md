@@ -1,5 +1,5 @@
 Hello,
-this my C project
+this is my C project
 railway ticket reservation
 
 username:user
